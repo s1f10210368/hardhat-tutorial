@@ -9,10 +9,16 @@ describe("Token contract", function () {
     // コードを常に明示的にしたい場合は以下の行を追加
     /*const { ethers } = require("hardhat");*/
 
-    // 以下の行を呼び出すことで
+    // 以下の行を呼び出すことで、デプロイメントが開始されPromiseが返される
+    // このPromiseはコントラクトが解決された時に"Contract"オブジェクトを返す
     const hardhatToken = await ethers.deployContract("Token");
 
+    // hardhatTokenでコントラクトメソッドを呼び出す
+    // ここではオーナーアカウントの残高を取得
     const ownerBalance = await hardhatToken.balanceOf(owner.address);
+
+    // 'Contract'インスタンスを使用してスマートコントラクト関数を呼び出している
+    // totalSupplyはトークンの供給量を返し、それがownerBalanceと等しいことを意味している
     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
   });
 });
