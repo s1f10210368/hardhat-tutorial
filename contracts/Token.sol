@@ -4,6 +4,8 @@
 // これはSolidityコンパイラによってバージョンを検証するために使用されます。
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
+
 // これはスマートコントラクトの主な構成要素です。
 contract Token {
     // トークンを識別するためのいくつかの文字列型変数。
@@ -42,6 +44,13 @@ contract Token {
         // トランザクション送信者が十分なトークンを持っているかを確認します。
         // `require`の最初の引数が`false`の場合、トランザクションは巻き戻されます。
         require(balances[msg.sender] >= amount, "Not enough tokens");
+
+        console.log(
+            "Transferring from %s to %s %s tokens",
+            msg.sender,
+            to,
+            amount
+        );
 
         // 金額を転送します。
         balances[msg.sender] -= amount;

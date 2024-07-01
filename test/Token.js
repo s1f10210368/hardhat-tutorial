@@ -1,24 +1,41 @@
-const { expect } = require("chai");
-
-describe("Token contract", function () {
-  it("Deployment should assign the total supply of tokens to the owner", async function () {
-    // ethers.jsのSignerはEthereumアカウントを表すオブジェクト、コントラクトや他のアカウントにトランザクションを送信するために使用される
-    // ここでは、接続しているノード(ここではHardhat Network)のアカウントリストを取得して最初のアカウントだけを保持している
-    const [owner] = await ethers.getSigners();
-
-    // コードを常に明示的にしたい場合は以下の行を追加
-    /*const { ethers } = require("hardhat");*/
-
-    // 以下の行を呼び出すことで、デプロイメントが開始されPromiseが返される
-    // このPromiseはコントラクトが解決された時に"Contract"オブジェクトを返す
-    const hardhatToken = await ethers.deployContract("Token");
-
-    // hardhatTokenでコントラクトメソッドを呼び出す
-    // ここではオーナーアカウントの残高を取得
-    const ownerBalance = await hardhatToken.balanceOf(owner.address);
-
-    // 'Contract'インスタンスを使用してスマートコントラクト関数を呼び出している
-    // totalSupplyはトークンの供給量を返し、それがownerBalanceと等しいことを意味している
-    expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+const {
+    loadFixture,
+  } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+  const { expect } = require("chai");
+  
+  describe("Token contract", function () {
+    async function deployTokenFixture() {
+      const [owner, addr1, addr2] = await ethers.getSigners();
+  
+      const hardhatToken = await ethers.deployContract("Token");
+  
+      // Fixtures can return anything you consider useful for your tests
+      return { hardhatToken, owner, addr1, addr2 };
+    }
+  
+    it("Should assign the total supply of tokens to the owner", async function () {
+      const { hardhatToken, owner } = await loadFixture(deployTokenFixture);
+  
+      const ownerBalance = await hardhatToken.balanceOf(owner.address);
+      expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+    });
+  
+    it("Should transfer tokens between accounts", async function () {
+      const { hardhatToken, owner, addr1, addr2 } = await loadFixture(
+        deployTokenFixture
+      );
+  
+      // Transfer 50 tokens from owner to addr1
+      await expect(
+        hardhatToken.transfer(addr1.address, 50)
+      ).to.changeTokenBalances(hardhatToken, [owner, addr1], [-50, 50]);
+  
+      // Transfer 50 tokens from addr1 to addr2
+      // We use .connect(signer) to send a transaction from another account
+      await expect(
+        hardhatToken.connect(addr1).transfer(addr2.address, 50)
+      ).to.changeTokenBalances(hardhatToken, [addr1, addr2], [-50, 50]);
+    });
   });
-});
+  
+
